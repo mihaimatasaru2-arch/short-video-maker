@@ -22,6 +22,8 @@ import type {
   MusicMoodEnum,
   MusicTag,
   MusicForVideo,
+  OverlayInput,
+  SceneOverlay,
 } from "../types/shorts";
 
 export class ShortCreator {
@@ -52,6 +54,8 @@ export class ShortCreator {
   }
 
   public addToQueue(sceneInput: SceneInput[], config: RenderConfig): string {
+    // fail fast with a clear message if an overlay file is missing
+    this.validateOverlayFiles(sceneInput);
     // todo add mutex lock
     const id = cuid();
     this.queue.push({
@@ -181,6 +185,10 @@ export class ShortCreator {
           url: `http://localhost:${this.config.port}/api/tmp/${tempMp3FileName}`,
           duration: audioLength,
         },
+        // only add the key when there are overlays, so normal scenes are unchanged
+        ...(scene.overlays?.length
+          ? { overlays: scene.overlays.map((o) => this.toSceneOverlay(o)) }
+          : {}),
       });
 
       totalDuration += audioLength;
@@ -216,6 +224,45 @@ export class ShortCreator {
     }
 
     return videoId;
+  }
+
+  private validateOverlayFiles(inputScenes: SceneInput[]): void {
+    const missing: string[] = [];
+    inputScenes.forEach((scene, i) => {
+      scene.overlays?.forEach((overlay, j) => {
+        const where = `scenes[${i}].overlays[${j}]`;
+        const imagePath = path.join(this.config.overlaysDirPath, overlay.image);
+        if (!fs.existsSync(imagePath)) {
+          missing.push(`${where}.image "${overlay.image}" not found in overlays folder`);
+        }
+        if (overlay.sound) {
+          const soundPath = path.join(this.config.soundsDirPath, overlay.sound);
+          if (!fs.existsSync(soundPath)) {
+            missing.push(`${where}.sound "${overlay.sound}" not found in sounds folder`);
+          }
+        }
+      });
+    });
+    if (missing.length > 0) {
+      throw new Error(`Missing overlay files: ${missing.join("; ")}`);
+    }
+  }
+
+  private toSceneOverlay(overlay: OverlayInput): SceneOverlay {
+    const base = `http://localhost:${this.config.port}`;
+    return {
+      imageUrl: `${base}/overlays/${encodeURIComponent(overlay.image)}`,
+      atSec: overlay.atSec,
+      durationSec: overlay.durationSec,
+      position: overlay.position,
+      animation: overlay.animation,
+      scale: overlay.scale,
+      outline: overlay.outline,
+      soundUrl: overlay.sound
+        ? `${base}/sounds/${encodeURIComponent(overlay.sound)}`
+        : undefined,
+      soundVolume: overlay.soundVolume,
+    };
   }
 
   public getVideoPath(videoId: string): string {

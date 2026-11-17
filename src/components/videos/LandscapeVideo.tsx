@@ -14,6 +14,7 @@ import {
   createCaptionPages,
   shortVideoSchema,
 } from "../utils";
+import { SceneOverlays } from "./Overlay";
 
 const { fontFamily } = loadFont(); // "Barlow Condensed"
 
@@ -61,7 +62,7 @@ export const LandscapeVideo: React.FC<z.infer<typeof shortVideoSchema>> = ({
       />
 
       {scenes.map((scene, i) => {
-        const { captions, audio, video } = scene;
+        const { captions, audio, video, overlays } = scene;
         const pages = createCaptionPages({
           captions,
           lineMaxLength: 30,
@@ -90,6 +91,16 @@ export const LandscapeVideo: React.FC<z.infer<typeof shortVideoSchema>> = ({
           >
             <OffthreadVideo src={video} muted />
             <Audio src={audio.url} />
+            <SceneOverlays
+              overlays={overlays}
+              sceneKey={`scene-${i}`}
+              sceneDurationSec={
+                audio.duration +
+                (config.paddingBack && i === scenes.length - 1
+                  ? config.paddingBack / 1000
+                  : 0)
+              }
+            />
             {pages.map((page, j) => {
               return (
                 <Sequence

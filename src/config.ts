@@ -37,6 +37,8 @@ export class Config {
   public tempDirPath: string;
   public packageDirPath: string;
   public musicDirPath: string;
+  public overlaysDirPath: string;
+  public soundsDirPath: string;
   public pexelsApiKey: string;
   public logLevel: pino.Level;
   public whisperVerbose: boolean;
@@ -69,6 +71,14 @@ export class Config {
     fs.ensureDirSync(this.libsDirPath);
     fs.ensureDirSync(this.videosDirPath);
     fs.ensureDirSync(this.tempDirPath);
+
+    // folders with user-supplied overlay images and sound effects
+    this.overlaysDirPath =
+      process.env.OVERLAYS_DIR_PATH || path.join(this.dataDirPath, "overlays");
+    this.soundsDirPath =
+      process.env.SOUNDS_DIR_PATH || path.join(this.dataDirPath, "sounds");
+    fs.ensureDirSync(this.overlaysDirPath);
+    fs.ensureDirSync(this.soundsDirPath);
 
     this.packageDirPath = path.join(__dirname, "..");
     this.staticDirPath = path.join(this.packageDirPath, "static");

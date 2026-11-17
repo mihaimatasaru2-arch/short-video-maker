@@ -21,6 +21,111 @@ export enum CaptionPositionEnum {
   bottom = "bottom",
 }
 
+export enum OverlayPositionEnum {
+  left = "left",
+  right = "right",
+  center = "center",
+  top = "top",
+  bottom = "bottom",
+}
+
+export enum OverlayAnimationEnum {
+  pop = "pop",
+  slide = "slide",
+  fade = "fade",
+}
+
+// Plain file names only: letters, numbers, spaces, dot, dash, underscore.
+// No slashes and no "..", so a request can never read outside the folder.
+export const SAFE_FILENAME_REGEX = /^(?!.*\.\.)[A-Za-z0-9 _.-]+$/;
+export const OVERLAY_IMAGE_EXTENSIONS = [".png", ".webp", ".jpg", ".jpeg", ".gif"];
+export const OVERLAY_SOUND_EXTENSIONS = [".mp3", ".wav", ".ogg", ".m4a"];
+
+const hasExtension = (exts: string[]) => (name: string) =>
+  exts.some((ext) => name.toLowerCase().endsWith(ext));
+
+export const overlayInput = z.object({
+  image: z
+    .string()
+    .regex(SAFE_FILENAME_REGEX, "Must be a plain file name, no folders")
+    .refine(hasExtension(OVERLAY_IMAGE_EXTENSIONS), {
+      message: `Image must end with ${OVERLAY_IMAGE_EXTENSIONS.join(", ")}`,
+    })
+    .describe(
+      "File name of an image in the server's overlays folder, e.g. 'doom.png'. Transparent PNG character cut-outs look best. Just the name, no folder path.",
+    ),
+  atSec: z
+    .number()
+    .min(0)
+    .default(0)
+    .describe(
+      "When the image appears, in seconds from the START OF THIS SCENE (not the whole video). Default 0. Time it to the moment the narration mentions the character.",
+    ),
+  durationSec: z
+    .number()
+    .positive()
+    .default(2.5)
+    .describe(
+      "How long the image stays on screen, in seconds. Default 2.5. It is cut off automatically if the scene ends first.",
+    ),
+  position: z
+    .nativeEnum(OverlayPositionEnum)
+    .default(OverlayPositionEnum.center)
+    .describe(
+      "Where the image sits in the frame: left, right, center, top or bottom. Default center. Captions are always drawn on top of overlays.",
+    ),
+  animation: z
+    .nativeEnum(OverlayAnimationEnum)
+    .default(OverlayAnimationEnum.pop)
+    .describe(
+      "How the image enters: 'pop' = springy scale-in with a slight overshoot (comic style), 'slide' = slides in from the nearest edge, 'fade' = soft fade. All of them fade out at the end. Default pop.",
+    ),
+  scale: z
+    .number()
+    .min(0.05)
+    .max(1)
+    .optional()
+    .describe(
+      "Image width as a fraction of the frame width, from 0.05 to 1. Default 0.55.",
+    ),
+  outline: z
+    .boolean()
+    .optional()
+    .describe(
+      "Draw a white comic-style outline and drop shadow around the image. Default true.",
+    ),
+  sound: z
+    .string()
+    .regex(SAFE_FILENAME_REGEX, "Must be a plain file name, no folders")
+    .refine(hasExtension(OVERLAY_SOUND_EXTENSIONS), {
+      message: `Sound must end with ${OVERLAY_SOUND_EXTENSIONS.join(", ")}`,
+    })
+    .optional()
+    .describe(
+      "Optional sound effect played exactly when the image appears, e.g. 'whoosh.mp3'. File name in the server's sounds folder.",
+    ),
+  soundVolume: z
+    .number()
+    .min(0)
+    .max(1)
+    .optional()
+    .describe("Volume of the sound effect from 0 to 1. Default 0.5."),
+});
+export type OverlayInput = z.infer<typeof overlayInput>;
+
+// What the video component receives: file names already turned into URLs.
+export type SceneOverlay = {
+  imageUrl: string;
+  atSec: number;
+  durationSec: number;
+  position: `${OverlayPositionEnum}`;
+  animation: `${OverlayAnimationEnum}`;
+  scale?: number;
+  outline?: boolean;
+  soundUrl?: string;
+  soundVolume?: number;
+};
+
 export type Scene = {
   captions: Caption[];
   video: string;
@@ -28,6 +133,7 @@ export type Scene = {
     url: string;
     duration: number;
   };
+  overlays?: SceneOverlay[];
 };
 
 export const sceneInput = z.object({
@@ -36,6 +142,12 @@ export const sceneInput = z.object({
     .array(z.string())
     .describe(
       "Search term for video, 1 word, and at least 2-3 search terms should be provided for each scene. Make sure to match the overall context with the word - regardless what the video search result would be.",
+    ),
+  overlays: z
+    .array(overlayInput)
+    .optional()
+    .describe(
+      "Optional comic character pop-ups shown on top of the background video during this scene (below the captions). Each item is an image from the overlays folder with its own timing, position, animation and optional sound effect. Leave out for a normal scene.",
     ),
 });
 export type SceneInput = z.infer<typeof sceneInput>;

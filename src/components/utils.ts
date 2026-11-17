@@ -17,6 +17,21 @@ export const shortVideoSchema = z.object({
         duration: z.number(),
       }),
       video: z.string(),
+      overlays: z
+        .array(
+          z.object({
+            imageUrl: z.string(),
+            atSec: z.number(),
+            durationSec: z.number(),
+            position: z.enum(["left", "right", "center", "top", "bottom"]),
+            animation: z.enum(["pop", "slide", "fade"]),
+            scale: z.number().optional(),
+            outline: z.boolean().optional(),
+            soundUrl: z.string().optional(),
+            soundVolume: z.number().optional(),
+          }),
+        )
+        .optional(),
     }),
   ),
   config: z.object({

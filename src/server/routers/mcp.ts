@@ -57,7 +57,20 @@ export class MCPRouter {
         config: renderConfig.describe("Configuration for rendering the video"),
       },
       async ({ scenes, config }) => {
-        const videoId = await this.shortCreator.addToQueue(scenes, config);
+        let videoId: string;
+        try {
+          videoId = this.shortCreator.addToQueue(scenes, config);
+        } catch (error: unknown) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text",
+                text: error instanceof Error ? error.message : String(error),
+              },
+            ],
+          };
+        }
 
         return {
           content: [
