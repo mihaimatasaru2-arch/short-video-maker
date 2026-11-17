@@ -154,15 +154,17 @@ export class APIRouter {
           res.setHeader("Content-Type", "video/mp4");
         }
 
-        const tmpFileStream = fs.createReadStream(tmpFilePath);
-        tmpFileStream.on("error", (error) => {
-          logger.error(error, "Error reading tmp file");
-          res.status(500).json({
-            error: "Error reading tmp file",
-            tmpFile,
-          });
+        // sendFile supports HTTP Range requests, which the browser <Video>
+        // player needs for seeking/looping; `root` also blocks ".." paths.
+        res.sendFile(tmpFile, { root: this.config.tempDirPath }, (error) => {
+          if (error && !res.headersSent) {
+            logger.error(error, "Error reading tmp file");
+            res.status(500).json({
+              error: "Error reading tmp file",
+              tmpFile,
+            });
+          }
         });
-        tmpFileStream.pipe(res);
       },
     );
 
