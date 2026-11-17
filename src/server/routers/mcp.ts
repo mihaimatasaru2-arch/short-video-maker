@@ -50,6 +50,18 @@ export class MCPRouter {
     );
 
     this.mcpServer.tool(
+      "list-voices",
+      "List the narration voices available: free local Kokoro voices and the ElevenLabs voices in the user's account (use these exact names in config.voice, e.g. 'elevenlabs:Hope').",
+      {},
+      async () => {
+        const voices = await this.shortCreator.ListAllVoices();
+        return {
+          content: [{ type: "text", text: JSON.stringify(voices, null, 2) }],
+        };
+      },
+    );
+
+    this.mcpServer.tool(
       "create-short-video",
       "Create a short video from a list of scenes",
       {

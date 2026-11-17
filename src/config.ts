@@ -42,6 +42,7 @@ export class Config {
   public backgroundsDirPath: string;
   public pexelsApiKey: string;
   public pixabayApiKey: string | undefined;
+  public elevenLabsApiKey: string | undefined;
   public logLevel: pino.Level;
   public whisperVerbose: boolean;
   public port: number;
@@ -94,6 +95,7 @@ export class Config {
 
     this.pexelsApiKey = process.env.PEXELS_API_KEY as string;
     this.pixabayApiKey = process.env.PIXABAY_API_KEY || undefined;
+    this.elevenLabsApiKey = process.env.ELEVENLABS_API_KEY || undefined;
     this.logLevel = (process.env.LOG_LEVEL || defaultLogLevel) as pino.Level;
     this.whisperVerbose = process.env.WHISPER_VERBOSE === "true";
     this.port = process.env.PORT ? parseInt(process.env.PORT) : defaultPort;

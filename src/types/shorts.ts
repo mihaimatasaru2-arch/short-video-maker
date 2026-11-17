@@ -219,9 +219,59 @@ export const renderConfig = z.object({
       "Background color of the caption, a valid css color, default is blue",
     ),
   voice: z
-    .nativeEnum(VoiceEnum)
+    .union([
+      z.nativeEnum(VoiceEnum),
+      z
+        .string()
+        .regex(/^elevenlabs:.+/, "ElevenLabs voices look like 'elevenlabs:<voice name>'"),
+    ])
     .optional()
-    .describe("Voice to be used for the speech, default is af_heart"),
+    .describe(
+      "Voice for the narration. Either a free local Kokoro voice (e.g. af_heart, am_michael, af_bella; default af_heart) " +
+        "or an ElevenLabs voice from the user's account written as 'elevenlabs:<voice name>', e.g. 'elevenlabs:Hope'. " +
+        "The start of the name is enough. Use the list-voices tool to see the exact names available.",
+    ),
+  voiceSettings: z
+    .object({
+      model: z
+        .enum(["eleven_multilingual_v2", "eleven_v3", "eleven_turbo_v2_5", "eleven_flash_v2_5"])
+        .optional()
+        .describe(
+          "ElevenLabs model. eleven_multilingual_v2 (default) = most reliable, supports <break time=\"1.0s\" /> pauses in the text. " +
+            "eleven_v3 = most expressive, understands acting tags in the text like [whispers], [excited], [dramatic pause]. " +
+            "flash/turbo = cheaper and faster, lower quality.",
+        ),
+      speed: z
+        .number()
+        .min(0.7)
+        .max(1.2)
+        .optional()
+        .describe("Speaking pace, 0.7 to 1.2 (1 = normal). ~0.9 for dramatic intros, ~1.05 for fast facts."),
+      stability: z
+        .number()
+        .min(0)
+        .max(1)
+        .optional()
+        .describe(
+          "0 to 1. Lower = more emotional and varied delivery, higher = calmer and more consistent. ~0.35-0.5 suits dramatic lore. (eleven_v3 rounds to 0, 0.5 or 1.)",
+        ),
+      similarity: z
+        .number()
+        .min(0)
+        .max(1)
+        .optional()
+        .describe("0 to 1. How closely to stick to the original voice. Keep high (~0.8+) for a cloned voice."),
+      style: z
+        .number()
+        .min(0)
+        .max(1)
+        .optional()
+        .describe("0 to 1. Exaggerates the speaker's style. 0.2-0.4 adds flair, higher gets theatrical."),
+    })
+    .optional()
+    .describe(
+      "Optional fine-tuning for ElevenLabs voices only (ignored for Kokoro voices): model, speed, stability, similarity, style.",
+    ),
   orientation: z
     .nativeEnum(OrientationEnum)
     .optional()

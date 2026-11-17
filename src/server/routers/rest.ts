@@ -99,6 +99,14 @@ export class APIRouter {
       res.status(200).json(this.shortCreator.ListAvailableVoices());
     });
 
+    // Kokoro + ElevenLabs voices (kept separate so /voices stays unchanged)
+    this.router.get(
+      "/voices/all",
+      async (req: ExpressRequest, res: ExpressResponse) => {
+        res.status(200).json(await this.shortCreator.ListAllVoices());
+      },
+    );
+
     this.router.get(
       "/short-videos",
       (req: ExpressRequest, res: ExpressResponse) => {

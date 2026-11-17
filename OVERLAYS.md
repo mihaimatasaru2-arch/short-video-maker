@@ -54,3 +54,23 @@ Background priority per scene:
 
 Pixabay searches are cached for 24 hours as their API terms require. The chosen
 clip's Pixabay page and author are written to the log ("Picked Pixabay video").
+
+## ElevenLabs voices
+
+Set `ELEVENLABS_API_KEY`, then use `"voice": "elevenlabs:<name>"` in `config`
+(the start of the name is enough, e.g. `elevenlabs:Hope`). The voice must be in
+your ElevenLabs **My Voices** (your clones, plus library voices you added).
+`GET /api/voices/all` and the MCP tool `list-voices` show the exact names.
+
+Optional `config.voiceSettings` (ElevenLabs only):
+
+| field | range | notes |
+|---|---|---|
+| `model` | `eleven_multilingual_v2` (default), `eleven_v3`, `eleven_turbo_v2_5`, `eleven_flash_v2_5` | v2 supports `<break time="1.0s" />` in the text; v3 understands `[whispers]`, `[excited]` etc. |
+| `speed` | 0.7–1.2 | ~0.9 dramatic, ~1.05 fast facts |
+| `stability` | 0–1 | lower = more emotional (v3 rounds to 0 / 0.5 / 1) |
+| `similarity` | 0–1 | keep ~0.8+ for a cloned voice |
+| `style` | 0–1 | 0.2–0.4 adds flair |
+
+Kokoro voices still work and stay the default. Each ElevenLabs call logs how many
+characters it used, since those count toward your plan.

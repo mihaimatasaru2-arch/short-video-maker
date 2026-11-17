@@ -13,6 +13,7 @@ import { FFMpeg } from "./libraries/FFmpeg";
 import { PexelsAPI } from "./libraries/Pexels";
 import { LocalBackgrounds } from "./libraries/LocalBackgrounds";
 import { PixabayAPI } from "./libraries/Pixabay";
+import { ElevenLabs } from "./libraries/ElevenLabs";
 import { Config } from "../config";
 import { logger } from "../logger";
 import { MusicManager } from "./music";
@@ -27,6 +28,7 @@ import type {
   OverlayInput,
   SceneOverlay,
   Video,
+  Voices,
 } from "../types/shorts";
 
 export class ShortCreator {
@@ -46,7 +48,9 @@ export class ShortCreator {
   ) {
     this.localBackgrounds = new LocalBackgrounds(config.backgroundsDirPath);
     this.pixabayApi = new PixabayAPI(config.pixabayApiKey);
+    this.elevenLabs = new ElevenLabs(config.elevenLabsApiKey);
   }
+  private elevenLabs: ElevenLabs;
   private localBackgrounds: LocalBackgrounds;
   private pixabayApi: PixabayAPI;
 
@@ -64,6 +68,11 @@ export class ShortCreator {
   public addToQueue(sceneInput: SceneInput[], config: RenderConfig): string {
     // fail fast with a clear message if an overlay file is missing
     this.validateOverlayFiles(sceneInput);
+    if (ElevenLabs.isElevenLabsVoice(config.voice) && !this.elevenLabs.isConfigured()) {
+      throw new Error(
+        `Voice "${config.voice}" needs ELEVENLABS_API_KEY - add it with the start script`,
+      );
+    }
     // todo add mutex lock
     const id = cuid();
     this.queue.push({
@@ -120,10 +129,13 @@ export class ShortCreator {
 
     let index = 0;
     for (const scene of inputScenes) {
-      const audio = await this.kokoro.generate(
-        scene.text,
-        config.voice ?? "af_heart",
-      );
+      const voice = config.voice ?? "af_heart";
+      const audio = ElevenLabs.isElevenLabsVoice(voice)
+        ? await this.elevenLabs.generate(scene.text, voice, config.voiceSettings, {
+            previousText: inputScenes[index - 1]?.text,
+            nextText: inputScenes[index + 1]?.text,
+          })
+        : await this.kokoro.generate(scene.text, voice as Voices);
       let { audioLength } = audio;
       const { audio: audioStream } = audio;
 
@@ -401,5 +413,27 @@ export class ShortCreator {
 
   public ListAvailableVoices(): string[] {
     return this.kokoro.listAvailableVoices();
+  }
+
+  /** Kokoro voices plus the ElevenLabs voices in the user's account (if a key is set). */
+  public async ListAllVoices(): Promise<{
+    kokoro: string[];
+    elevenlabs: string[];
+    elevenlabsError?: string;
+  }> {
+    const kokoro = this.kokoro.listAvailableVoices();
+    if (!this.elevenLabs.isConfigured()) {
+      return { kokoro, elevenlabs: [], elevenlabsError: "ELEVENLABS_API_KEY not set" };
+    }
+    try {
+      const voices = await this.elevenLabs.listVoices();
+      return { kokoro, elevenlabs: voices.map((v) => `elevenlabs:${v.name}`) };
+    } catch (error: unknown) {
+      return {
+        kokoro,
+        elevenlabs: [],
+        elevenlabsError: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 }
