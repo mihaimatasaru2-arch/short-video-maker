@@ -39,6 +39,7 @@ export class Config {
   public musicDirPath: string;
   public overlaysDirPath: string;
   public soundsDirPath: string;
+  public backgroundsDirPath: string;
   public pexelsApiKey: string;
   public logLevel: pino.Level;
   public whisperVerbose: boolean;
@@ -80,6 +81,12 @@ export class Config {
     fs.ensureDirSync(this.overlaysDirPath);
     fs.ensureDirSync(this.soundsDirPath);
 
+    // optional folder with your own background clips/photos (used instead of Pexels)
+    this.backgroundsDirPath =
+      process.env.BACKGROUNDS_DIR_PATH ||
+      path.join(this.dataDirPath, "backgrounds");
+    fs.ensureDirSync(this.backgroundsDirPath);
+
     this.packageDirPath = path.join(__dirname, "..");
     this.staticDirPath = path.join(this.packageDirPath, "static");
     this.musicDirPath = path.join(this.staticDirPath, "music");
@@ -111,6 +118,16 @@ export class Config {
   }
 
   public ensureConfig() {
+    const hasLocalBackgrounds = fs
+      .readdirSync(this.backgroundsDirPath)
+      .some((f) => /\.(mp4|webm|mov|jpe?g|png|webp)$/i.test(f));
+    if (!this.pexelsApiKey && hasLocalBackgrounds) {
+      logger.info(
+        { backgroundsDirPath: this.backgroundsDirPath },
+        "No PEXELS_API_KEY set - using local background files only",
+      );
+      return;
+    }
     if (!this.pexelsApiKey) {
       throw new Error(
         "PEXELS_API_KEY environment variable is missing. Get your free API key: https://www.pexels.com/api/key/ - see how to run the project: https://github.com/gyoridavid/short-video-maker",

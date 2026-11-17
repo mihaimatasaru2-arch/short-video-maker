@@ -4,7 +4,6 @@ import {
   useCurrentFrame,
   useVideoConfig,
   Audio,
-  OffthreadVideo,
 } from "remotion";
 import { z } from "zod";
 import { loadFont } from "@remotion/google-fonts/BarlowCondensed";
@@ -15,6 +14,7 @@ import {
   shortVideoSchema,
 } from "../utils";
 import { SceneOverlays } from "./Overlay";
+import { SceneBackground } from "./Background";
 
 const { fontFamily } = loadFont(); // "Barlow Condensed"
 
@@ -62,7 +62,7 @@ export const PortraitVideo: React.FC<z.infer<typeof shortVideoSchema>> = ({
       />
 
       {scenes.map((scene, i) => {
-        const { captions, audio, video, overlays } = scene;
+        const { captions, audio, video, overlays, background } = scene;
         const pages = createCaptionPages({
           captions,
           lineMaxLength: 20,
@@ -89,7 +89,11 @@ export const PortraitVideo: React.FC<z.infer<typeof shortVideoSchema>> = ({
             durationInFrames={durationInFrames}
             key={`scene-${i}`}
           >
-            <OffthreadVideo src={video} muted />
+            <SceneBackground
+              src={video}
+              background={background}
+              durationInFrames={Math.round(audio.duration * fps)}
+            />
             <Audio src={audio.url} />
             <SceneOverlays
               overlays={overlays}

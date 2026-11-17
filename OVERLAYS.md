@@ -30,3 +30,14 @@ Folders (inside Docker): `/app/data/overlays` and `/app/data/sounds`.
 Override with `OVERLAYS_DIR_PATH` / `SOUNDS_DIR_PATH`. Missing files are rejected
 when the request is made. Overlays are drawn above the background video and
 below the captions.
+
+## Your own backgrounds (no Pexels key needed)
+
+Put `.mp4`/`.webm`/`.mov` clips or `.jpg`/`.png`/`.webp` photos in the backgrounds
+folder (inside Docker: `/app/data/backgrounds`, override with `BACKGROUNDS_DIR_PATH`).
+When that folder has files, it is used instead of Pexels and `PEXELS_API_KEY` is optional.
+
+- Each scene's `searchTerms` are matched against the words in the file names, so
+  name files like `nebula-green-space.jpg` or `galaxy-purple-stars.mp4`.
+- The best match is picked, avoiding clips already used in the same video.
+- Short clips loop; photos get a slow zoom. Everything is cropped to fill the frame.

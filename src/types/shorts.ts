@@ -134,6 +134,8 @@ export type Scene = {
     duration: number;
   };
   overlays?: SceneOverlay[];
+  // set only for backgrounds from the local folder; Pexels scenes leave it out
+  background?: { kind: "video" | "image" };
 };
 
 export const sceneInput = z.object({

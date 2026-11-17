@@ -11,6 +11,7 @@ import { Remotion } from "./libraries/Remotion";
 import { Whisper } from "./libraries/Whisper";
 import { FFMpeg } from "./libraries/FFmpeg";
 import { PexelsAPI } from "./libraries/Pexels";
+import { LocalBackgrounds } from "./libraries/LocalBackgrounds";
 import { Config } from "../config";
 import { logger } from "../logger";
 import { MusicManager } from "./music";
@@ -40,7 +41,10 @@ export class ShortCreator {
     private ffmpeg: FFMpeg,
     private pexelsApi: PexelsAPI,
     private musicManager: MusicManager,
-  ) {}
+  ) {
+    this.localBackgrounds = new LocalBackgrounds(config.backgroundsDirPath);
+  }
+  private localBackgrounds: LocalBackgrounds;
 
   public status(id: string): VideoStatus {
     const videoPath = this.getVideoPath(id);
@@ -141,6 +145,28 @@ export class ShortCreator {
       const captions = await this.whisper.CreateCaption(tempWavPath);
 
       await this.ffmpeg.saveToMp3(audioStream, tempMp3Path);
+
+      // Your own background folder wins when it has files; otherwise use Pexels.
+      if (this.localBackgrounds.hasAny()) {
+        const bg = this.localBackgrounds.find(scene.searchTerms, excludeVideoIds);
+        excludeVideoIds.push(bg.file);
+        scenes.push({
+          captions,
+          video: `http://localhost:${this.config.port}/backgrounds/${encodeURIComponent(bg.file)}`,
+          background: { kind: bg.kind },
+          audio: {
+            url: `http://localhost:${this.config.port}/api/tmp/${tempMp3FileName}`,
+            duration: audioLength,
+          },
+          ...(scene.overlays?.length
+            ? { overlays: scene.overlays.map((o) => this.toSceneOverlay(o)) }
+            : {}),
+        });
+        totalDuration += audioLength;
+        index++;
+        continue;
+      }
+
       const video = await this.pexelsApi.findVideo(
         scene.searchTerms,
         audioLength,

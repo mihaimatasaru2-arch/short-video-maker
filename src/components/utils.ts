@@ -17,6 +17,9 @@ export const shortVideoSchema = z.object({
         duration: z.number(),
       }),
       video: z.string(),
+      background: z
+        .object({ kind: z.enum(["video", "image"]) })
+        .optional(),
       overlays: z
         .array(
           z.object({

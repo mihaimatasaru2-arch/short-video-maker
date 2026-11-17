@@ -66,6 +66,7 @@ export class Server {
     };
     this.app.use("/overlays", safeStatic(config.overlaysDirPath));
     this.app.use("/sounds", safeStatic(config.soundsDirPath));
+    this.app.use("/backgrounds", safeStatic(config.backgroundsDirPath));
 
     // Serve the React app for all other routes (must be last)
     this.app.get("*", (req: ExpressRequest, res: ExpressResponse) => {
