@@ -99,7 +99,7 @@ const OverlayImage: React.FC<{ overlay: SceneOverlay; durationInFrames: number }
     : "center center";
 
   return (
-    <AbsoluteFill style={{ display: "flex", ...layout }}>
+    <AbsoluteFill style={{ display: "flex", flexDirection: "row", ...layout }}>
       <Img
         src={overlay.imageUrl}
         style={{
