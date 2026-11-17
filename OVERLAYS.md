@@ -41,3 +41,16 @@ When that folder has files, it is used instead of Pexels and `PEXELS_API_KEY` is
   name files like `nebula-green-space.jpg` or `galaxy-purple-stars.mp4`.
 - The best match is picked, avoiding clips already used in the same video.
 - Short clips loop; photos get a slow zoom. Everything is cropped to fill the frame.
+
+## Pixabay backgrounds
+
+Set `PIXABAY_API_KEY` (free key at https://pixabay.com/api/docs/ when logged in).
+Background priority per scene:
+
+1. a file in your backgrounds folder whose name matches a search term
+2. Pixabay video search (vertical clips preferred; landscape clips are cropped to fill, using 4K when needed so it stays sharp)
+3. Pexels, if `PEXELS_API_KEY` is set
+4. any file from your backgrounds folder
+
+Pixabay searches are cached for 24 hours as their API terms require. The chosen
+clip's Pixabay page and author are written to the log ("Picked Pixabay video").

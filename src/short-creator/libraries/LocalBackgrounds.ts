@@ -40,6 +40,15 @@ export class LocalBackgrounds {
     return this.list().length > 0;
   }
 
+  /** Like find(), but returns null unless at least one search term matches a file name. */
+  public findMatch(searchTerms: string[], excludeFiles: string[]): LocalBackground | null {
+    if (!this.hasAny()) return null;
+    const pick = this.find(searchTerms, excludeFiles);
+    const words = path.parse(pick.file).name.toLowerCase().split(/[^a-z0-9]+/);
+    const matched = searchTerms.some((t) => words.includes(t.toLowerCase().trim()));
+    return matched ? pick : null;
+  }
+
   public find(searchTerms: string[], excludeFiles: string[]): LocalBackground {
     const all = this.list();
     if (all.length === 0) {

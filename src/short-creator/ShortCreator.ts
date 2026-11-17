@@ -12,6 +12,7 @@ import { Whisper } from "./libraries/Whisper";
 import { FFMpeg } from "./libraries/FFmpeg";
 import { PexelsAPI } from "./libraries/Pexels";
 import { LocalBackgrounds } from "./libraries/LocalBackgrounds";
+import { PixabayAPI } from "./libraries/Pixabay";
 import { Config } from "../config";
 import { logger } from "../logger";
 import { MusicManager } from "./music";
@@ -25,6 +26,7 @@ import type {
   MusicForVideo,
   OverlayInput,
   SceneOverlay,
+  Video,
 } from "../types/shorts";
 
 export class ShortCreator {
@@ -43,8 +45,10 @@ export class ShortCreator {
     private musicManager: MusicManager,
   ) {
     this.localBackgrounds = new LocalBackgrounds(config.backgroundsDirPath);
+    this.pixabayApi = new PixabayAPI(config.pixabayApiKey);
   }
   private localBackgrounds: LocalBackgrounds;
+  private pixabayApi: PixabayAPI;
 
   public status(id: string): VideoStatus {
     const videoPath = this.getVideoPath(id);
@@ -146,9 +150,35 @@ export class ShortCreator {
 
       await this.ffmpeg.saveToMp3(audioStream, tempMp3Path);
 
-      // Your own background folder wins when it has files; otherwise use Pexels.
-      if (this.localBackgrounds.hasAny()) {
-        const bg = this.localBackgrounds.find(scene.searchTerms, excludeVideoIds);
+      // Background priority:
+      // 1) your own file whose name matches a search term
+      // 2) Pixabay (if PIXABAY_API_KEY is set)
+      // 3) Pexels (if PEXELS_API_KEY is set)
+      // 4) any file from your backgrounds folder
+      let bg = this.localBackgrounds.findMatch(scene.searchTerms, excludeVideoIds);
+      let video: Video | null = null;
+      let fromPixabay = false;
+      if (!bg && this.pixabayApi.isConfigured()) {
+        try {
+          video = await this.pixabayApi.findVideo(
+            scene.searchTerms,
+            audioLength,
+            excludeVideoIds,
+            orientation,
+          );
+          fromPixabay = true;
+        } catch (error: unknown) {
+          if (!this.localBackgrounds.hasAny() && !this.config.pexelsApiKey) {
+            throw error;
+          }
+          logger.warn(error, "Pixabay failed, falling back");
+        }
+      }
+      if (!bg && !video && !this.config.pexelsApiKey && this.localBackgrounds.hasAny()) {
+        bg = this.localBackgrounds.find(scene.searchTerms, excludeVideoIds);
+      }
+
+      if (bg) {
         excludeVideoIds.push(bg.file);
         scenes.push({
           captions,
@@ -167,19 +197,22 @@ export class ShortCreator {
         continue;
       }
 
-      const video = await this.pexelsApi.findVideo(
-        scene.searchTerms,
-        audioLength,
-        excludeVideoIds,
-        orientation,
-      );
+      if (!video) {
+        video = await this.pexelsApi.findVideo(
+          scene.searchTerms,
+          audioLength,
+          excludeVideoIds,
+          orientation,
+        );
+      }
+      const videoUrl = video.url;
 
       logger.debug(`Downloading video from ${video.url} to ${tempVideoPath}`);
 
       await new Promise<void>((resolve, reject) => {
         const fileStream = fs.createWriteStream(tempVideoPath);
         https
-          .get(video.url, (response: http.IncomingMessage) => {
+          .get(videoUrl, (response: http.IncomingMessage) => {
             if (response.statusCode !== 200) {
               reject(
                 new Error(`Failed to download video: ${response.statusCode}`),
@@ -207,6 +240,8 @@ export class ShortCreator {
       scenes.push({
         captions,
         video: `http://localhost:${this.config.port}/api/tmp/${tempVideoFileName}`,
+        // Pixabay clips are often landscape: crop to fill and loop if short
+        ...(fromPixabay ? { background: { kind: "video" as const } } : {}),
         audio: {
           url: `http://localhost:${this.config.port}/api/tmp/${tempMp3FileName}`,
           duration: audioLength,

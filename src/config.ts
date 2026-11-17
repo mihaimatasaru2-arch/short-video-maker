@@ -41,6 +41,7 @@ export class Config {
   public soundsDirPath: string;
   public backgroundsDirPath: string;
   public pexelsApiKey: string;
+  public pixabayApiKey: string | undefined;
   public logLevel: pino.Level;
   public whisperVerbose: boolean;
   public port: number;
@@ -92,6 +93,7 @@ export class Config {
     this.musicDirPath = path.join(this.staticDirPath, "music");
 
     this.pexelsApiKey = process.env.PEXELS_API_KEY as string;
+    this.pixabayApiKey = process.env.PIXABAY_API_KEY || undefined;
     this.logLevel = (process.env.LOG_LEVEL || defaultLogLevel) as pino.Level;
     this.whisperVerbose = process.env.WHISPER_VERBOSE === "true";
     this.port = process.env.PORT ? parseInt(process.env.PORT) : defaultPort;
@@ -121,10 +123,14 @@ export class Config {
     const hasLocalBackgrounds = fs
       .readdirSync(this.backgroundsDirPath)
       .some((f) => /\.(mp4|webm|mov|jpe?g|png|webp)$/i.test(f));
+    if (this.pixabayApiKey) {
+      logger.info("Using Pixabay for backgrounds (your own matching files win)");
+      return;
+    }
     if (!this.pexelsApiKey && hasLocalBackgrounds) {
       logger.info(
         { backgroundsDirPath: this.backgroundsDirPath },
-        "No PEXELS_API_KEY set - using local background files only",
+        "No PEXELS_API_KEY or PIXABAY_API_KEY set - using local background files only",
       );
       return;
     }
