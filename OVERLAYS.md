@@ -74,3 +74,9 @@ Optional `config.voiceSettings` (ElevenLabs only):
 
 Kokoro voices still work and stay the default. Each ElevenLabs call logs how many
 characters it used, since those count toward your plan.
+
+## Captions
+
+Captions show your exact script words (names, numbers, punctuation), timed by
+what Whisper hears in the audio. ElevenLabs `[tags]` and `<break />` tags are
+never shown. If the audio doesn't match the script, Whisper's words are used.

@@ -8,6 +8,7 @@ import path from "path";
 import { Config } from "../../config";
 import type { Caption } from "../../types/shorts";
 import { logger } from "../../logger";
+import { alignCaptionsToScript } from "./captionAlign";
 
 export const ErrorWhisper = new Error("There was an error with WhisperCpp");
 
@@ -44,7 +45,7 @@ export class Whisper {
   }
 
   // todo shall we extract it to a Caption class?
-  async CreateCaption(audioPath: string): Promise<Caption[]> {
+  async CreateCaption(audioPath: string, scriptText?: string): Promise<Caption[]> {
     logger.debug({ audioPath }, "Starting to transcribe audio");
     const { transcription } = await transcribe({
       model: this.config.whisperModel,
@@ -88,6 +89,12 @@ export class Whisper {
       });
     });
     logger.debug({ audioPath, captions }, "Captions created");
+    if (scriptText) {
+      // show the exact script words, timed by what Whisper heard
+      const aligned = alignCaptionsToScript(captions, scriptText);
+      logger.debug({ audioPath, aligned }, "Captions aligned to script");
+      return aligned;
+    }
     return captions;
   }
 }
