@@ -168,6 +168,10 @@ export class ShortCreator {
       // 3) Pexels (if PEXELS_API_KEY is set)
       // 4) any file from your backgrounds folder
       let bg = this.localBackgrounds.findMatch(scene.searchTerms, excludeVideoIds);
+      if (!bg && config.backgroundSource === "local") {
+        // stay inside the curated library: best name match, else any unused file
+        bg = this.localBackgrounds.find(scene.searchTerms, excludeVideoIds);
+      }
       let video: Video | null = null;
       let fromPixabay = false;
       if (!bg && this.pixabayApi.isConfigured()) {

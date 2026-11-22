@@ -80,3 +80,9 @@ characters it used, since those count toward your plan.
 Captions show your exact script words (names, numbers, punctuation), timed by
 what Whisper hears in the audio. ElevenLabs `[tags]` and `<break />` tags are
 never shown. If the audio doesn't match the script, Whisper's words are used.
+
+## Consistent backgrounds
+
+Set `"backgroundSource": "local"` in `config` to use only your backgrounds folder.
+Each scene gets the file whose name best matches its `searchTerms` (unused files
+first), so name files by style, e.g. `nebula-purple-dark-01.mp4`, `comic-vs-red.mp4`.

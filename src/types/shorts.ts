@@ -231,6 +231,13 @@ export const renderConfig = z.object({
         "or an ElevenLabs voice from the user's account written as 'elevenlabs:<voice name>', e.g. 'elevenlabs:Hope'. " +
         "The start of the name is enough. Use the list-voices tool to see the exact names available.",
     ),
+  backgroundSource: z
+    .enum(["any", "local"])
+    .optional()
+    .describe(
+      "Where scene backgrounds come from. 'any' (default): a matching file from the user's backgrounds folder, otherwise Pixabay/Pexels. " +
+        "'local': only the user's own backgrounds folder (consistent channel look); searchTerms pick the best-matching file name.",
+    ),
   voiceSettings: z
     .object({
       model: z
