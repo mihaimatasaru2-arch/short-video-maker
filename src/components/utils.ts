@@ -32,6 +32,7 @@ export const shortVideoSchema = z.object({
             outline: z.boolean().optional(),
             soundUrl: z.string().optional(),
             soundVolume: z.number().optional(),
+            offsetY: z.number().optional(),
           }),
         )
         .optional(),

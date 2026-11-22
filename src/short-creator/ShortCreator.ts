@@ -335,6 +335,7 @@ export class ShortCreator {
       animation: overlay.animation,
       scale: overlay.scale,
       outline: overlay.outline,
+      offsetY: overlay.offsetY,
       soundUrl: overlay.sound
         ? `${base}/sounds/${encodeURIComponent(overlay.sound)}`
         : undefined,

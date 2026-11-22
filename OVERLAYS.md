@@ -23,6 +23,7 @@ folder, sounds from the sounds folder (plain file names only, no paths).
 | `animation` | pop | pop (springy overshoot), slide (from nearest edge), fade |
 | `scale` | 0.55 | image width as a fraction of frame width |
 | `outline` | true | white comic outline + drop shadow |
+| `offsetY` | -0.15 (left/right/center), 0 (top/bottom) | vertical shift as a fraction of frame height; negative = higher, keeps faces above centered captions |
 | `sound` | none | file in the sounds folder (.mp3/.wav/.ogg/.m4a), plays when the image appears |
 | `soundVolume` | 0.5 | 0 to 1 |
 

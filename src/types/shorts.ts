@@ -94,6 +94,15 @@ export const overlayInput = z.object({
     .describe(
       "Draw a white comic-style outline and drop shadow around the image. Default true.",
     ),
+  offsetY: z
+    .number()
+    .min(-0.5)
+    .max(0.5)
+    .optional()
+    .describe(
+      "Vertical shift as a fraction of the frame height; negative = higher. Default -0.15 for left/right/center " +
+        "(lifts characters' faces above centered captions), 0 for top/bottom.",
+    ),
   sound: z
     .string()
     .regex(SAFE_FILENAME_REGEX, "Must be a plain file name, no folders")
@@ -122,6 +131,7 @@ export type SceneOverlay = {
   animation: `${OverlayAnimationEnum}`;
   scale?: number;
   outline?: boolean;
+  offsetY?: number;
   soundUrl?: string;
   soundVolume?: number;
 };

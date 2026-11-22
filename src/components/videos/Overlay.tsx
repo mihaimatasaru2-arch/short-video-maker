@@ -22,6 +22,8 @@ const EDGE_MARGIN = "4%";
 
 // White comic-style outline (4 hard shadows) + a soft drop shadow.
 // drop-shadow follows the PNG's transparency, so it outlines the character, not the box.
+const DEFAULT_OFFSET_Y = -0.15;
+
 const OUTLINE_FILTER = [
   "drop-shadow(5px 0 0 white)",
   "drop-shadow(-5px 0 0 white)",
@@ -90,6 +92,11 @@ const OverlayImage: React.FC<{ overlay: SceneOverlay; durationInFrames: number }
   }
 
   const layout = LAYOUT[overlay.position];
+  // lift side/center images so faces sit above the (centered) captions
+  const offsetY =
+    overlay.offsetY ??
+    (overlay.position === "top" || overlay.position === "bottom" ? 0 : DEFAULT_OFFSET_Y);
+  translateY += offsetY * height;
   const imageWidth = (overlay.scale ?? DEFAULT_SCALE) * width;
   const transformOrigin =
     overlay.position === "left" ? "left center"
@@ -104,7 +111,7 @@ const OverlayImage: React.FC<{ overlay: SceneOverlay; durationInFrames: number }
         src={overlay.imageUrl}
         style={{
           width: imageWidth,
-          maxHeight: "75%",
+          maxHeight: offsetY < 0 ? `${Math.round(75 + offsetY * 100)}%` : "75%",
           objectFit: "contain",
           opacity,
           transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
