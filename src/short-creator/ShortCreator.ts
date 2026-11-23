@@ -288,6 +288,7 @@ export class ShortCreator {
           ...{
             captionBackgroundColor: config.captionBackgroundColor,
             captionPosition: config.captionPosition,
+            captionStyle: config.captionStyle,
           },
           musicVolume: config.musicVolume,
         },

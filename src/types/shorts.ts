@@ -228,6 +228,12 @@ export const renderConfig = z.object({
     .describe(
       "Background color of the caption, a valid css color, default is blue",
     ),
+  captionStyle: z
+    .enum(["classic", "cinematic", "cinematic-purple", "cinematic-dim", "subtitle"])
+    .optional()
+    .describe(
+      "Caption look. classic = big words on a colored box (default). cinematic = serif capitals, spoken word glows gold, 2-4 words at a time. cinematic-purple = same with a purple glow. cinematic-dim = same, words still to come are dimmed. subtitle = small modern text, up to 8 words, words still to come are dimmed, the spoken word gets a purple outline.",
+    ),
   voice: z
     .union([
       z.nativeEnum(VoiceEnum),

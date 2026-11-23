@@ -15,6 +15,7 @@ import {
 } from "../utils";
 import { SceneOverlays } from "./Overlay";
 import { SceneBackground } from "./Background";
+import { StyledCaptions } from "./StyledCaptions";
 
 const { fontFamily } = loadFont(); // "Barlow Condensed"
 
@@ -47,6 +48,8 @@ export const PortraitVideo: React.FC<z.infer<typeof shortVideoSchema>> = ({
   if (captionPosition === "bottom") {
     captionStyle = { bottom: 100 };
   }
+
+  const styleName = config.captionStyle ?? "classic";
 
   const [musicVolume, musicMuted] = calculateVolume(config.musicVolume);
 
@@ -105,7 +108,10 @@ export const PortraitVideo: React.FC<z.infer<typeof shortVideoSchema>> = ({
                   : 0)
               }
             />
-            {pages.map((page, j) => {
+            {styleName !== "classic" && (
+              <StyledCaptions captions={captions} style={styleName} />
+            )}
+            {styleName === "classic" && pages.map((page, j) => {
               return (
                 <Sequence
                   key={`scene-${i}-page-${j}`}

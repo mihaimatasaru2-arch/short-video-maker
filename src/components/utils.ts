@@ -42,6 +42,9 @@ export const shortVideoSchema = z.object({
     paddingBack: z.number().optional(),
     captionPosition: z.enum(["top", "center", "bottom"]).optional(),
     captionBackgroundColor: z.string().optional(),
+    captionStyle: z
+      .enum(["classic", "cinematic", "cinematic-purple", "cinematic-dim", "subtitle"])
+      .optional(),
     durationMs: z.number(),
     musicVolume: z.nativeEnum(MusicVolumeEnum).optional(),
   }),

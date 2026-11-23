@@ -87,3 +87,17 @@ never shown. If the audio doesn't match the script, Whisper's words are used.
 Set `"backgroundSource": "local"` in `config` to use only your backgrounds folder.
 Each scene gets the file whose name best matches its `searchTerms` (unused files
 first), so name files by style, e.g. `nebula-purple-dark-01.mp4`, `comic-vs-red.mp4`.
+
+## Caption styles
+
+Set `config.captionStyle`:
+
+| Style | Look |
+|---|---|
+| `classic` (default) | Big Barlow words on a colored box |
+| `cinematic` | Cinzel capitals, cream text, spoken word glows gold, 2-4 words per chunk |
+| `cinematic-purple` | Same, spoken word glows purple |
+| `cinematic-dim` | Same chunks, words still to come are dimmed |
+| `subtitle` | Small Inter text, up to 8 words on 2 lines, upcoming words dimmed, spoken word outlined in purple |
+
+Chunks end at punctuation, at pauses over 350 ms, or at the word/letter limit.
